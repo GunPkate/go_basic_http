@@ -74,10 +74,15 @@ type logger struct {
 }
 
 func main() {
-	http.HandleFunc("/health", healthHandler)
-	http.HandleFunc("/users", logMIddleware(userHandle)) //higher order function
+	mux := http.NewServeMux()
+	mux.HandleFunc("/health", healthHandler)
+	mux.HandleFunc("/users", logMIddleware(userHandle)) //higher order function
 
+	srv := http.Server{
+		Addr: ":2500",
+		Handler: mux,
+	}
 	log.Println("Server start")
-	log.Fatal(http.ListenAndServe(":2500", nil))
+	log.Fatal(srv.ListenAndServe())
 	log.Println("Exit")
 }

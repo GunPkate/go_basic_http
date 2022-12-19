@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"log"
 
-	_ "github.com/lib/pq" //unused lib will disappear to keep it "_" 
+	_ "github.com/lib/pq" //unused lib will disappear to keep it "_"
 )
 
 func main() {
@@ -15,5 +15,11 @@ func main() {
 	}
 	defer db.Close()
 
+	createTb := `CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY,name TEXT,age INT)`
+
+	_, err = db.Exec(createTb)
+	if err != nil {
+		log.Fatal("can't create table", err)
+	}
 	log.Println("okay")
 }
