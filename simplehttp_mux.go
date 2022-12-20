@@ -21,6 +21,9 @@ var users = []User{
 }
 
 func userHandle(w http.ResponseWriter, r *http.Request) {
+	u, p, ok := r.BasicAuth()
+	log.Println("auth:", u, p, ok)
+
 	if r.Method == "GET" {
 		b, err := json.Marshal(users)
 		if err != nil {
@@ -80,16 +83,37 @@ func (l logger) ServeHTTP(w http.ResponseWriter, req *http.Request) { //multiplx
 
 }
 
+func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		u, p, ok := r.BasicAuth()
+		if !ok {
+			w.WriteHeader(401)
+			w.Write([]byte(`can't parse the basic auth`))
+			return
+		}
+
+		if u != "apidesign" || p != "45678" {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("username/password incorrected."))
+			return
+		}
+
+		fmt.Println("Authorized")
+		next(w, r)
+	}
+}
+
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthHandler)
 	// mux.HandleFunc("/users", logMIddleware(userHandle)) //higher order function
-	mux.HandleFunc("/users", userHandle) //higher order function
+	// mux.HandleFunc("/users", userHandle) //higher order function
+	mux.HandleFunc("/users", AuthMiddleware(userHandle)) //
 
-	logMux := logger{Handler: mux}//multiplxer wrap
+	logMux := logger{Handler: mux} //multiplxer wrap
 	srv := http.Server{
 		Addr:    ":2500",
-		Handler: logMux,//multiplxer wrap
+		Handler: logMux, //multiplxer wrap
 	}
 	log.Println("Server start")
 	log.Fatal(srv.ListenAndServe())
