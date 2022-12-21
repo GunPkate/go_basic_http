@@ -104,6 +104,8 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func main() {
+	
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", healthHandler)
 	// mux.HandleFunc("/users", logMIddleware(userHandle)) //higher order function
